@@ -1,0 +1,70 @@
+# Python
+__pycache__/
+*.py[cod]
+*.pyo
+
+# Virtual environment
+.venv/
+.venv_py314/
+venv_py314/
+venv/
+env/
+
+# Jupyter
+.ipynb_checkpoints/
+
+# IDE
+.vscode/
+.idea/
+
+# OS
+.DS_Store
+Thumbs.db
+
+# Secrets / environment
+.env
+*.key
+*.pem
+
+# Large ML/cache files
+.cache/
+huggingface/
+# ML model files
+*.safetensors
+
+
+# Environnements virtuels (uv / venv)
+venv/
+.venv/
+uv.lock
+
+# Python
+__pycache__/
+*.py[cod]
+.ipynb_checkpoints/
+
+# Secrets
+.env
+*.key
+*.pem
+.streamlit/secrets.toml
+
+# Logs et fichiers de test
+*.log
+calls.log
+
+# Sauvegarde créée par update_database.py
+customer_support.backup.db
+
+# Caches et gros modèles (téléchargés automatiquement)
+.cache/
+huggingface/
+*.safetensors
+*.bin
+*.pt
+
+# IDE / OS
+.vscode/
+.idea/
+.DS_Store
+Thumbs.db
