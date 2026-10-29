@@ -18,6 +18,15 @@ import sqlite3
 from datetime import date, datetime
 from pathlib import Path
 
+import os
+import time
+import requests
+
+try:
+    from metrics import record
+except ImportError: # app.py lancé seul, sans metrics.py
+    record = lambda *a, **k: None
+
 
 # ============================================================
 # SETTINGS  (the only things you normally need to change)
@@ -484,7 +493,7 @@ def generate_support_reply(user_message, conversation, sentiment=None, today=Non
     info = {"order_id", "order", "refund", "no_info", "state"}
     `conversation` is the list kept in st.session_state; it is updated in place.
     """
-    import ollama                      # imported here so the module can be tested without Ollama
+                         # imported here so the module can be tested without Ollama
 
     today = today or date.today()
     conversation.append({"role": "user", "content": user_message})
@@ -502,8 +511,7 @@ def generate_support_reply(user_message, conversation, sentiment=None, today=Non
         messages = [{"role": "system", "content": system_message}]
         messages.extend(conversation[-HISTORY_MESSAGES:])
 
-        response = ollama.chat(model=LLM_MODEL, messages=messages)
-        bot_message = response["message"]["content"].strip()
+        bot_message = call_llm(messages)
 
         if NO_INFO_RE.search(bot_message):
             log_unanswered(user_message, context["order_id"])
@@ -525,3 +533,19 @@ def generate_support_reply(user_message, conversation, sentiment=None, today=Non
         "state": context["state"],
     }
     return bot_message, info
+
+LLM_URL = os.getenv("LLM_URL")
+def call_llm(messages):
+    if LLM_URL:
+        t = time.perf_counter()
+        try:
+            r = requests.post(f"{LLM_URL}/llm", json={"messages": messages},
+                              timeout=120)
+            r.raise_for_status()
+            record("llm_call", (time.perf_counter() - t) * 1000)
+            return r.json()["content"].strip()
+        except requests.RequestException:
+            record("llm_error", (time.perf_counter() - t) * 1000)
+            return "NO_INFO" # nœud LLM en panne : message de repli
+    import ollama
+    return ollama.chat(model=LLM_MODEL, messages=messages)["message"]["content"].strip()
